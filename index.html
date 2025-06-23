@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CSV to iTabs Converter - Alliance AMS Demo</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
     <style>
         * {
             margin: 0;
@@ -127,6 +126,7 @@
         min-height: 150px;
         white-space: pre;
         word-wrap: break-word;
+        resize: vertical;
     }
     
     .csv-data[contenteditable="true"] {
@@ -502,7 +502,7 @@
                 <div class="csv-title">
                     📄 Your CSV Product Data
                     <div class="csv-controls">
-                        <button class="csv-btn" onclick="enableEditing()">Edit</button>
+                        <button class="csv-btn" onclick="toggleEditing(this)">Edit</button>
                         <button class="csv-btn" onclick="clearCSV()">Clear</button>
                         <button class="csv-btn" onclick="loadSample('tools')">Sample Tools</button>
                         <button class="csv-btn" onclick="loadSample('automotive')">Sample Auto</button>
@@ -605,9 +605,9 @@ NAPA-F45,Oil Filter Spin-On,24.95,Paper Element,M20x1.5,In Stock</div>
             <button class="popup-close" onclick="closePopup()">&times;</button>
         </div>
         <div class="popup-tabs">
-            <button class="popup-tab active" onclick="switchPopupTab('overview')">Overview</button>
-            <button class="popup-tab" onclick="switchPopupTab('specs')">Specs</button>
-            <button class="popup-tab" onclick="switchPopupTab('pricing')">Pricing</button>
+            <button class="popup-tab active" onclick="switchPopupTab(this, 'overview')">Overview</button>
+            <button class="popup-tab" onclick="switchPopupTab(this, 'specs')">Specs</button>
+            <button class="popup-tab" onclick="switchPopupTab(this, 'pricing')">Pricing</button>
         </div>
         <div class="popup-content">
             <div class="popup-tab-content active" id="overview">
@@ -651,42 +651,23 @@ MANN-W712/75,Oil Filter,28.50,Paper Element,3/4-16 UNF,In Stock`
 };
 
 ```
-    let siteColors = {
-        primary: '#1e3c72',
-        secondary: '#2a5298',
-        accent: '#28a745'
-    };
+    let productDatabase = [];
     
-    function enableEditing() {
+    function toggleEditing(button) {
         const csvData = document.getElementById('csvData');
-        csvData.contentEditable = 'true';
-        csvData.focus();
         
-        // Add visual feedback
-        csvData.style.borderColor = '#007bff';
-        csvData.style.boxShadow = '0 0 0 2px rgba(0,123,255,0.25)';
-        
-        // Change button text
-        event.target.textContent = 'Save';
-        event.target.onclick = function() {
-            disableEditing();
-        };
-    }
-    
-    function disableEditing() {
-        const csvData = document.getElementById('csvData');
-        csvData.contentEditable = 'false';
-        
-        // Remove visual feedback
-        csvData.style.borderColor = '#dee2e6';
-        csvData.style.boxShadow = 'none';
-        
-        // Reset button
-        const editBtn = document.querySelector('.csv-btn');
-        editBtn.textContent = 'Edit';
-        editBtn.onclick = function() {
-            enableEditing();
-        };
+        if (csvData.contentEditable === 'false') {
+            csvData.contentEditable = 'true';
+            csvData.focus();
+            csvData.style.borderColor = '#007bff';
+            csvData.style.boxShadow = '0 0 0 2px rgba(0,123,255,0.25)';
+            button.textContent = 'Save';
+        } else {
+            csvData.contentEditable = 'false';
+            csvData.style.borderColor = '#dee2e6';
+            csvData.style.boxShadow = 'none';
+            button.textContent = 'Edit';
+        }
     }
     
     function clearCSV() {
@@ -728,6 +709,7 @@ MANN-W712/75,Oil Filter,28.50,Paper Element,3/4-16 UNF,In Stock`
         
         setTimeout(() => {
             const products = parseCSV(csvText);
+            productDatabase = products; // Store for popup use
             
             if (products.length === 0) {
                 outputArea.innerHTML = '<div style="text-align: center; color: #dc3545; padding: 20px;">❌ No valid product data found. Please check your CSV format.</div>';
@@ -779,9 +761,7 @@ MANN-W712/75,Oil Filter,28.50,Paper Element,3/4-16 UNF,In Stock`
     }
     
     function showProductPopup(productCode) {
-        const csvText = document.getElementById('csvData').textContent;
-        const products = parseCSV(csvText);
-        const product = products.find(p => (p.product_code || p.code) === productCode);
+        const product = productDatabase.find(p => (p.product_code || p.code) === productCode);
         
         if (!product) return;
         
@@ -825,4 +805,38 @@ MANN-W712/75,Oil Filter,28.50,Paper Element,3/4-16 UNF,In Stock`
                 <div style="font-size: 1.8rem; font-weight: bold; color: #155724;">$${price}</div>
                 <div style="color: #155724;">Alliance AMS Price</div>
             </div>
-            <div style="
+            <div style="margin: 15px 0;">
+                <strong>Stock Status:</strong> <span style="color: #28a745; font-weight: bold;">✅ ${stock}</span>
+            </div>
+            <div style="margin: 15px 0;">
+                <strong>Delivery:</strong><br>
+                • Perth Metro: Same day<br>
+                • WA Regional: Next day<br>
+                • Interstate: 2-3 days
+            </div>
+        `;
+        
+        document.getElementById('popupOverlay').classList.add('active');
+    }
+    
+    function closePopup() {
+        document.getElementById('popupOverlay').classList.remove('active');
+    }
+    
+    function switchPopupTab(tabButton, tabName) {
+        // Remove active from all tabs
+        document.querySelectorAll('.popup-tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.popup-tab-content').forEach(content => content.classList.remove('active'));
+        
+        // Add active to selected tab
+        tabButton.classList.add('active');
+        document.getElementById(tabName).classList.add('active');
+    }
+    
+    // Auto-start demo after page loads
+    setTimeout(startConversion, 1000);
+</script>
+```
+
+</body>
+</html>
