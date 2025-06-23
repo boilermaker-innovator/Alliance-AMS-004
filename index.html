@@ -320,7 +320,6 @@
         background: #5a6268;
     }
     
-    /* Popup styles */
     .popup-overlay {
         position: fixed;
         top: 0;
@@ -466,7 +465,7 @@
             gap: 30px;
         }
         
-        .conversion-arrow {
+        .conversion-arrow .arrow {
             transform: rotate(90deg);
         }
         
@@ -497,7 +496,6 @@
         </div>
         
         <div class="conversion-flow">
-            <!-- CSV Input -->
             <div class="csv-input">
                 <div class="csv-title">
                     📄 Your CSV Product Data
@@ -523,14 +521,12 @@ NAPA-F45,Oil Filter Spin-On,24.95,Paper Element,M20x1.5,In Stock</div>
 </div>
 
 ```
-            <!-- Conversion Arrow -->
             <div class="conversion-arrow">
                 <div class="arrow">→</div>
                 <button class="convert-btn" onclick="startConversion()">Convert to iTabs</button>
                 <div style="font-size: 0.8rem; color: #666; text-align: center;">AI Enhanced<br>Processing</div>
             </div>
             
-            <!-- iTabs Output -->
             <div class="itabs-output">
                 <div class="output-title">🎯 Interactive iTabs Products</div>
                 <div id="outputArea">
@@ -596,7 +592,6 @@ NAPA-F45,Oil Filter Spin-On,24.95,Paper Element,M20x1.5,In Stock</div>
     </div>
 </div>
 
-<!-- Popup for iTabs Demo -->
 <div class="popup-overlay" id="popupOverlay" onclick="closePopup()">
     <div class="popup" onclick="event.stopPropagation()">
         <div class="popup-header">
@@ -709,7 +704,7 @@ MANN-W712/75,Oil Filter,28.50,Paper Element,3/4-16 UNF,In Stock`
         
         setTimeout(() => {
             const products = parseCSV(csvText);
-            productDatabase = products; // Store for popup use
+            productDatabase = products;
             
             if (products.length === 0) {
                 outputArea.innerHTML = '<div style="text-align: center; color: #dc3545; padding: 20px;">❌ No valid product data found. Please check your CSV format.</div>';
@@ -741,7 +736,6 @@ MANN-W712/75,Oil Filter,28.50,Paper Element,3/4-16 UNF,In Stock`
             
             outputArea.innerHTML = html;
             
-            // Add click instruction
             const instruction = document.createElement('div');
             instruction.style.cssText = 'text-align: center; color: #28a745; font-weight: bold; padding: 15px; background: #d4edda; border-radius: 6px; margin-top: 15px;';
             instruction.innerHTML = '👆 Click any blue "i" button to see the interactive iTabs in action!';
@@ -775,7 +769,6 @@ MANN-W712/75,Oil Filter,28.50,Paper Element,3/4-16 UNF,In Stock`
         document.getElementById('popupTitle').textContent = name;
         document.getElementById('popupCode').textContent = `Code: ${code}`;
         
-        // Overview content
         document.getElementById('overviewContent').innerHTML = `
             <h4>${name}</h4>
             <p>Professional quality ${name.toLowerCase()} suitable for trade and industrial applications.</p>
@@ -788,7 +781,6 @@ MANN-W712/75,Oil Filter,28.50,Paper Element,3/4-16 UNF,In Stock`
             </div>
         `;
         
-        // Specs content
         document.getElementById('specsContent').innerHTML = `
             <table style="width: 100%; border-collapse: collapse;">
                 <tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; font-weight: 600;">Product Code</td><td style="padding: 8px;">${code}</td></tr>
@@ -799,7 +791,6 @@ MANN-W712/75,Oil Filter,28.50,Paper Element,3/4-16 UNF,In Stock`
             </table>
         `;
         
-        // Pricing content
         document.getElementById('pricingContent').innerHTML = `
             <div style="background: #d4edda; padding: 20px; border-radius: 6px; text-align: center; margin: 15px 0;">
                 <div style="font-size: 1.8rem; font-weight: bold; color: #155724;">$${price}</div>
@@ -824,19 +815,8 @@ MANN-W712/75,Oil Filter,28.50,Paper Element,3/4-16 UNF,In Stock`
     }
     
     function switchPopupTab(tabButton, tabName) {
-        // Remove active from all tabs
         document.querySelectorAll('.popup-tab').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.popup-tab-content').forEach(content => content.classList.remove('active'));
-        
-        // Add active to selected tab
-        tabButton.classList.add('active');
-        document.getElementById(tabName).classList.add('active');
-    }
-    
-    // Auto-start demo after page loads
-    setTimeout(startConversion, 1000);
-</script>
-```
-
-</body>
+        document.querySelectorAll('.popup-tab-content').forEach(content => content.classList.
+       </script>
+</body> 
 </html>
