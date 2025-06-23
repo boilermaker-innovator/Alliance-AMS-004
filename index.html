@@ -89,6 +89,29 @@
         font-weight: 600;
         margin-bottom: 15px;
         color: #495057;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .csv-controls {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .csv-btn {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 5px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: all 0.3s ease;
+    }
+    
+    .csv-btn:hover {
+        background: #5a6268;
     }
     
     .csv-data {
@@ -101,6 +124,22 @@
         overflow-x: auto;
         max-height: 300px;
         overflow-y: auto;
+        min-height: 150px;
+        white-space: pre;
+        word-wrap: break-word;
+    }
+    
+    .csv-data[contenteditable="true"] {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+    }
+    
+    .editable-hint {
+        font-size: 0.7rem;
+        color: #666;
+        margin-top: 5px;
+        font-style: italic;
     }
     
     .conversion-arrow {
@@ -460,11 +499,18 @@
         <div class="conversion-flow">
             <!-- CSV Input -->
             <div class="csv-input">
-                <div class="csv-title">📄 Your CSV Product Data</div>
-                <div class="csv-data" id="csvData">
+                <div class="csv-title">
+                    📄 Your CSV Product Data
+                    <div class="csv-controls">
+                        <button class="csv-btn" onclick="enableEditing()">Edit</button>
+                        <button class="csv-btn" onclick="clearCSV()">Clear</button>
+                        <button class="csv-btn" onclick="loadSample('tools')">Sample Tools</button>
+                        <button class="csv-btn" onclick="loadSample('automotive')">Sample Auto</button>
+                    </div>
+                </div>
+                <div class="csv-data" id="csvData" contenteditable="false">product_code,product_name,price,material,size,stock_status
 ```
 
-product_code,product_name,price,material,size,stock_status
 F-6MM,Forstner Bit 6mm,18.95,High Speed Steel,6mm,In Stock
 F-10MM,Forstner Bit 10mm,22.95,High Speed Steel,10mm,In Stock
 F-15MM,Forstner Bit 15mm,28.95,High Speed Steel,15mm,In Stock
@@ -472,8 +518,8 @@ F-20MM,Forstner Bit 20mm,34.95,High Speed Steel,20mm,In Stock
 F-25MM,Forstner Bit 25mm,42.95,High Speed Steel,25mm,In Stock
 RDA-7945,Brake Rotor Front,245.00,Cast Iron,280mm,In Stock
 NWP-B4C,Brake Pads Ceramic,89.95,Ceramic,Front Set,In Stock
-NAPA-F45,Oil Filter Spin-On,24.95,Paper Element,M20x1.5,In Stock
-</div>
+NAPA-F45,Oil Filter Spin-On,24.95,Paper Element,M20x1.5,In Stock</div>
+<div class="editable-hint">Click “Edit” to paste your own CSV data, or use sample buttons</div>
 </div>
 
 ```
@@ -578,128 +624,134 @@ NAPA-F45,Oil Filter Spin-On,24.95,Paper Element,M20x1.5,In Stock
 </div>
 
 <script>
-    const sampleProducts = {
-        forstner: [
-            { code: 'F-6MM', name: 'Forstner Bit 6mm', price: '18.95', material: 'High Speed Steel', size: '6mm' },
-            { code: 'F-10MM', name: 'Forstner Bit 10mm', price: '22.95', material: 'High Speed Steel', size: '10mm' },
-            { code: 'F-15MM', name: 'Forstner Bit 15mm', price: '28.95', material: 'High Speed Steel', size: '15mm' },
-            { code: 'F-20MM', name: 'Forstner Bit 20mm', price: '34.95', material: 'High Speed Steel', size: '20mm' },
-            { code: 'F-25MM', name: 'Forstner Bit 25mm', price: '42.95', material: 'High Speed Steel', size: '25mm' }
-        ],
-        automotive: [
-            { code: 'RDA-7945', name: 'Brake Rotor Front Set', price: '245.00', material: 'Cast Iron', size: '280mm' },
-            { code: 'NWP-B4C', name: 'Ceramic Brake Pads', price: '89.95', material: 'Ceramic', size: 'Front Set' },
-            { code: 'NAPA-F45', name: 'Oil Filter Spin-On', price: '24.95', material: 'Paper Element', size: 'M20x1.5' }
-        ]
-    };
-    
-    let currentCategory = 'forstner';
-    let colorThief = new ColorThief();
+    const sampleCSVData = {
+        tools: `product_code,product_name,price,material,size,stock_status
+```
+
+F-6MM,Forstner Bit 6mm,18.95,High Speed Steel,6mm,In Stock
+F-10MM,Forstner Bit 10mm,22.95,High Speed Steel,10mm,In Stock
+F-15MM,Forstner Bit 15mm,28.95,High Speed Steel,15mm,In Stock
+F-20MM,Forstner Bit 20mm,34.95,High Speed Steel,20mm,In Stock
+F-25MM,Forstner Bit 25mm,42.95,High Speed Steel,25mm,In Stock
+D-12MM,Drill Bit HSS 12mm,8.95,High Speed Steel,12mm,In Stock
+D-15MM,Drill Bit HSS 15mm,12.95,High Speed Steel,15mm,In Stock
+S-150MM,Steel Rule 150mm,15.50,Stainless Steel,150mm,In Stock`,
+
+```
+        automotive: `product_code,product_name,price,material,size,stock_status
+```
+
+RDA-7945,Brake Rotor Front Set,245.00,Cast Iron,280mm,In Stock
+NWP-B4C,Ceramic Brake Pads,89.95,Ceramic,Front Set,In Stock
+NAPA-F45,Oil Filter Spin-On,24.95,Paper Element,M20x1.5,In Stock
+GATES-5PK1190,Serpentine Belt,42.50,EPDM Rubber,1190mm,In Stock
+WIX-51515,Air Filter,18.95,Paper Element,Round,In Stock
+ACDelco-41-962,Spark Plug,12.95,Iridium,14mm,In Stock
+MANN-W712/75,Oil Filter,28.50,Paper Element,3/4-16 UNF,In Stock`
+};
+
+```
     let siteColors = {
         primary: '#1e3c72',
         secondary: '#2a5298',
         accent: '#28a745'
     };
     
-    // Extract colors from Alliance AMS website
-    function extractSiteColors() {
-        // Create a hidden image to sample Alliance AMS colors
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = function() {
-            try {
-                const dominantColor = colorThief.getColor(img);
-                const palette = colorThief.getPalette(img, 5);
-                
-                // Convert to hex colors
-                siteColors.primary = rgbToHex(dominantColor[0], dominantColor[1], dominantColor[2]);
-                siteColors.secondary = rgbToHex(palette[1][0], palette[1][1], palette[1][2]);
-                siteColors.accent = rgbToHex(palette[2][0], palette[2][1], palette[2][2]);
-                
-                // Apply the extracted colors
-                applyBrandColors();
-                
-                console.log('Alliance AMS colors extracted:', siteColors);
-            } catch (error) {
-                console.log('Using default colors - CORS or loading issue');
-                applyBrandColors();
-            }
-        };
+    function enableEditing() {
+        const csvData = document.getElementById('csvData');
+        csvData.contentEditable = 'true';
+        csvData.focus();
         
-        img.onerror = function() {
-            console.log('Using default Alliance AMS-inspired colors');
-            applyBrandColors();
-        };
+        // Add visual feedback
+        csvData.style.borderColor = '#007bff';
+        csvData.style.boxShadow = '0 0 0 2px rgba(0,123,255,0.25)';
         
-        // Try to load Alliance AMS logo/header image
-        img.src = 'https://allianceams.com.au/wp-content/uploads/2023/07/Alliance-AMS-Logo.png';
+        // Change button text
+        event.target.textContent = 'Save';
+        event.target.onclick = function() {
+            disableEditing();
+        };
     }
     
-    function rgbToHex(r, g, b) {
-        return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    function disableEditing() {
+        const csvData = document.getElementById('csvData');
+        csvData.contentEditable = 'false';
+        
+        // Remove visual feedback
+        csvData.style.borderColor = '#dee2e6';
+        csvData.style.boxShadow = 'none';
+        
+        // Reset button
+        const editBtn = document.querySelector('.csv-btn');
+        editBtn.textContent = 'Edit';
+        editBtn.onclick = function() {
+            enableEditing();
+        };
     }
     
-    function applyBrandColors() {
-        // Update CSS custom properties with extracted colors
-        document.documentElement.style.setProperty('--primary-color', siteColors.primary);
-        document.documentElement.style.setProperty('--secondary-color', siteColors.secondary);
-        document.documentElement.style.setProperty('--accent-color', siteColors.accent);
+    function clearCSV() {
+        document.getElementById('csvData').textContent = 'product_code,product_name,price,material,size,stock_status\n';
+        document.getElementById('outputArea').innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">Click "Convert to iTabs" to see the transformation</div>';
+    }
+    
+    function loadSample(type) {
+        document.getElementById('csvData').textContent = sampleCSVData[type];
+        document.getElementById('outputArea').innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">Click "Convert to iTabs" to see the transformation</div>';
+    }
+    
+    function parseCSV(csvText) {
+        const lines = csvText.trim().split('\n');
+        if (lines.length < 2) return [];
         
-        // Update specific elements
-        const style = document.createElement('style');
-        style.textContent = `
-            .header {
-                background: linear-gradient(135deg, ${siteColors.primary} 0%, ${siteColors.secondary} 100%) !important;
+        const headers = lines[0].split(',').map(h => h.trim());
+        const products = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',').map(v => v.trim());
+            if (values.length >= headers.length) {
+                const product = {};
+                headers.forEach((header, index) => {
+                    product[header] = values[index] || '';
+                });
+                products.push(product);
             }
-            .itabs-indicator {
-                background: ${siteColors.primary} !important;
-            }
-            .itabs-indicator:hover {
-                background: ${siteColors.secondary} !important;
-            }
-            .popup-header {
-                background: linear-gradient(135deg, ${siteColors.primary} 0%, ${siteColors.secondary} 100%) !important;
-            }
-            .popup-tab.active {
-                color: ${siteColors.primary} !important;
-                border-bottom-color: ${siteColors.primary} !important;
-            }
-            .step-card {
-                border-left-color: ${siteColors.primary} !important;
-            }
-            .step-number {
-                background: ${siteColors.primary} !important;
-            }
-            .demo-btn {
-                background: ${siteColors.primary} !important;
-            }
-            .demo-btn:hover {
-                background: ${siteColors.secondary} !important;
-            }
-            .convert-btn {
-                background: ${siteColors.accent} !important;
-            }
-        `;
-        document.head.appendChild(style);
+        }
+        
+        return products;
     }
     
     function startConversion() {
         const outputArea = document.getElementById('outputArea');
+        const csvText = document.getElementById('csvData').textContent;
+        
         outputArea.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">🔄 Converting CSV data to iTabs...</div>';
         
         setTimeout(() => {
-            const products = sampleProducts[currentCategory];
+            const products = parseCSV(csvText);
+            
+            if (products.length === 0) {
+                outputArea.innerHTML = '<div style="text-align: center; color: #dc3545; padding: 20px;">❌ No valid product data found. Please check your CSV format.</div>';
+                return;
+            }
+            
             let html = '';
             
-            products.forEach(product => {
+            products.forEach((product, index) => {
+                const name = product.product_name || product.name || `Product ${index + 1}`;
+                const code = product.product_code || product.code || `P${index + 1}`;
+                const price = product.price || '0.00';
+                const material = product.material || 'Not specified';
+                const size = product.size || 'Standard';
+                const stock = product.stock_status || product.status || 'Unknown';
+                
                 html += `
                     <div class="product-preview">
                         <div class="product-name">
-                            ${product.name}
-                            <span class="itabs-indicator" onclick="event.stopPropagation(); showProductPopup('${product.code}')">i</span>
+                            ${name}
+                            <span class="itabs-indicator" onclick="event.stopPropagation(); showProductPopup('${code}')">i</span>
                         </div>
                         <div class="product-details">
-                            $${product.price} • ${product.material} • ${product.size} • In Stock
+                            $${price} • ${material} • ${size} • ${stock}
                         </div>
                     </div>
                 `;
@@ -716,48 +768,40 @@ NAPA-F45,Oil Filter Spin-On,24.95,Paper Element,M20x1.5,In Stock
     }
     
     function showDifferentCategory() {
-        currentCategory = currentCategory === 'forstner' ? 'automotive' : 'forstner';
-        
         const csvData = document.getElementById('csvData');
-        if (currentCategory === 'automotive') {
-            csvData.textContent = `product_code,product_name,price,material,size,stock_status
-```
-
-RDA-7945,Brake Rotor Front Set,245.00,Cast Iron,280mm,In Stock
-NWP-B4C,Ceramic Brake Pads,89.95,Ceramic,Front Set,In Stock
-NAPA-F45,Oil Filter Spin-On,24.95,Paper Element,M20x1.5,In Stock
-GATES-5PK1190,Serpentine Belt,42.50,EPDM Rubber,1190mm,In Stock
-WIX-51515,Air Filter,18.95,Paper Element,Round,In Stock`; } else { csvData.textContent = `product_code,product_name,price,material,size,stock_status
-F-6MM,Forstner Bit 6mm,18.95,High Speed Steel,6mm,In Stock
-F-10MM,Forstner Bit 10mm,22.95,High Speed Steel,10mm,In Stock
-F-15MM,Forstner Bit 15mm,28.95,High Speed Steel,15mm,In Stock
-F-20MM,Forstner Bit 20mm,34.95,High Speed Steel,20mm,In Stock
-F-25MM,Forstner Bit 25mm,42.95,High Speed Steel,25mm,In Stock
-RDA-7945,Brake Rotor Front,245.00,Cast Iron,280mm,In Stock
-NWP-B4C,Brake Pads Ceramic,89.95,Ceramic,Front Set,In Stock
-NAPA-F45,Oil Filter Spin-On,24.95,Paper Element,M20x1.5,In Stock`;
-}
-
-```
-        document.getElementById('outputArea').innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">Click "Convert to iTabs" to see the transformation</div>';
+        const currentText = csvData.textContent;
+        
+        if (currentText.includes('Forstner') || currentText.includes('Drill')) {
+            loadSample('automotive');
+        } else {
+            loadSample('tools');
+        }
     }
     
     function showProductPopup(productCode) {
-        const allProducts = [...sampleProducts.forstner, ...sampleProducts.automotive];
-        const product = allProducts.find(p => p.code === productCode);
+        const csvText = document.getElementById('csvData').textContent;
+        const products = parseCSV(csvText);
+        const product = products.find(p => (p.product_code || p.code) === productCode);
         
         if (!product) return;
         
-        document.getElementById('popupTitle').textContent = product.name;
-        document.getElementById('popupCode').textContent = `Code: ${product.code}`;
+        const name = product.product_name || product.name || 'Product';
+        const code = product.product_code || product.code || productCode;
+        const price = product.price || '0.00';
+        const material = product.material || 'Not specified';
+        const size = product.size || 'Standard';
+        const stock = product.stock_status || product.status || 'Unknown';
+        
+        document.getElementById('popupTitle').textContent = name;
+        document.getElementById('popupCode').textContent = `Code: ${code}`;
         
         // Overview content
         document.getElementById('overviewContent').innerHTML = `
-            <h4>${product.name}</h4>
-            <p>Professional quality ${product.name.toLowerCase()} suitable for trade and industrial applications.</p>
+            <h4>${name}</h4>
+            <p>Professional quality ${name.toLowerCase()} suitable for trade and industrial applications.</p>
             <div style="background: #e8f4fd; padding: 15px; border-radius: 6px; margin: 15px 0;">
                 <strong>Key Features:</strong><br>
-                • High-quality ${product.material.toLowerCase()}<br>
+                • High-quality ${material.toLowerCase()}<br>
                 • Professional grade construction<br>
                 • Suitable for heavy-duty applications<br>
                 • Alliance AMS quality guarantee
@@ -767,9 +811,9 @@ NAPA-F45,Oil Filter Spin-On,24.95,Paper Element,M20x1.5,In Stock`;
         // Specs content
         document.getElementById('specsContent').innerHTML = `
             <table style="width: 100%; border-collapse: collapse;">
-                <tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; font-weight: 600;">Product Code</td><td style="padding: 8px;">${product.code}</td></tr>
-                <tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; font-weight: 600;">Material</td><td style="padding: 8px;">${product.material}</td></tr>
-                <tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; font-weight: 600;">Size</td><td style="padding: 8px;">${product.size}</td></tr>
+                <tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; font-weight: 600;">Product Code</td><td style="padding: 8px;">${code}</td></tr>
+                <tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; font-weight: 600;">Material</td><td style="padding: 8px;">${material}</td></tr>
+                <tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; font-weight: 600;">Size</td><td style="padding: 8px;">${size}</td></tr>
                 <tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; font-weight: 600;">Brand</td><td style="padding: 8px;">Alliance Tools</td></tr>
                 <tr><td style="padding: 8px; font-weight: 600;">Warranty</td><td style="padding: 8px;">12 months</td></tr>
             </table>
@@ -778,41 +822,7 @@ NAPA-F45,Oil Filter Spin-On,24.95,Paper Element,M20x1.5,In Stock`;
         // Pricing content
         document.getElementById('pricingContent').innerHTML = `
             <div style="background: #d4edda; padding: 20px; border-radius: 6px; text-align: center; margin: 15px 0;">
-                <div style="font-size: 1.8rem; font-weight: bold; color: #155724;">$${product.price}</div>
+                <div style="font-size: 1.8rem; font-weight: bold; color: #155724;">$${price}</div>
                 <div style="color: #155724;">Alliance AMS Price</div>
             </div>
-            <div style="margin: 15px 0;">
-                <strong>Stock Status:</strong> <span style="color: #28a745; font-weight: bold;">✅ In Stock</span>
-            </div>
-            <div style="margin: 15px 0;">
-                <strong>Delivery:</strong><br>
-                • Perth Metro: Same day<br>
-                • WA Regional: Next day<br>
-                • Interstate: 2-3 days
-            </div>
-        `;
-        
-        document.getElementById('popupOverlay').classList.add('active');
-    }
-    
-    function closePopup() {
-        document.getElementById('popupOverlay').classList.remove('active');
-    }
-    
-    function switchPopupTab(tabName) {
-        // Remove active from all tabs
-        document.querySelectorAll('.popup-tab').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.popup-tab-content').forEach(content => content.classList.remove('active'));
-        
-        // Add active to selected tab
-        event.target.classList.add('active');
-        document.getElementById(tabName).classList.add('active');
-    }
-    
-    // Auto-start demo
-    setTimeout(startConversion, 1000);
-</script>
-```
-
-</body>
-</html>
+            <div style="
